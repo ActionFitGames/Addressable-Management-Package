@@ -15,6 +15,7 @@ namespace ActionFit.Framework.Addressable
         private readonly List<Action<Exception>> _errorCallbacks = new();
         
         public bool IsCompleted { get; private set; }
+        public bool HasError { get; private set; }
         public float Progress { get; private set; }
         public Task Task => _completionSource.Task;
 
@@ -33,7 +34,7 @@ namespace ActionFit.Framework.Addressable
         public IPrepareLoadOperation OnComplete(Action callback)
         {
             _completeCallbacks.Add(callback);
-            if (IsCompleted)
+            if (IsCompleted && Task.IsCompletedSuccessfully)
             {
                 callback();
             }
@@ -43,6 +44,10 @@ namespace ActionFit.Framework.Addressable
         public IPrepareLoadOperation OnError(Action<Exception> callback)
         {
             _errorCallbacks.Add(callback);
+            if (HasError && Task.IsFaulted)
+            {
+                callback(Task.Exception?.InnerException ?? Task.Exception);
+            }
             return this;
         }
 
@@ -69,6 +74,7 @@ namespace ActionFit.Framework.Addressable
 
         internal void SetError(Exception exception)
         {
+            HasError = true;
             foreach (var callback in _errorCallbacks)
             {
                 callback(exception);

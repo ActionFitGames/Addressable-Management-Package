@@ -98,13 +98,7 @@ namespace ActionFit.Framework.Addressable
                 return;
             }
 
-            var assetKey = new AssetKey(
-                keyInfo.primary,
-                keyInfo.runtime,
-                internalId,
-                keyInfo.type
-            );
-
+            var assetKey = new AssetKey(keyInfo.primary, keyInfo.runtime, internalId, keyInfo.type);
             Registry.CachedAssetKeys.Add(assetKey);
         }
 

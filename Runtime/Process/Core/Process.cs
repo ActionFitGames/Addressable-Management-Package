@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 
 namespace ActionFit.Framework.Addressable
 {
-    internal class Process : NeedResourceSystemRegistry, IDisposable
+    internal class Process : NeedResourceSystemRegistry, IProcess
     {
         #region Fields
 
         private readonly IInitializer _initializer;
         private readonly IPrepareLoader _prepareLoader;
+        private readonly IFetchLoader _fetchLoader;
         
         private TaskCompletionSource<bool> _initializeCompleteSource;
 
-        internal IPrepareLoader PrepareLoader => _prepareLoader;
+        public IPrepareLoader PrepareLoader => _prepareLoader;
+        public IFetchLoader FetchLoader => _fetchLoader;
 
         #endregion
 
@@ -24,7 +26,15 @@ namespace ActionFit.Framework.Addressable
             _initializeCompleteSource = new TaskCompletionSource<bool>();
 
             _prepareLoader = new PrepareLoader(resourceSystemRegistry);
+            _fetchLoader = new FetchLoader(resourceSystemRegistry);
 
+            InitializeSequence();
+        }
+
+        #region Private
+
+        private void InitializeSequence()
+        {
             InitializeInternalAsync().ContinueWith(task =>
             {
                 if (!task.IsFaulted)
@@ -36,8 +46,6 @@ namespace ActionFit.Framework.Addressable
                 _initializeCompleteSource.SetResult(false);
             });
         }
-
-        #region Private
 
         private async Task InitializeInternalAsync()
         {
