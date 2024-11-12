@@ -6,7 +6,8 @@ namespace ActionFit.Framework.Addressable
     internal partial class ResourceSystem : InternalSingleton<ResourceSystem>, IDisposable
     {
         private readonly ResourceSystemRegistry _resourceSystemRegistry;
-        private readonly Process _process;
+        private readonly IProcess _process;
+        private readonly IProvider _provider;
         
         internal static bool IsActivateInitialize { get; set; }
         
@@ -15,8 +16,8 @@ namespace ActionFit.Framework.Addressable
         public ResourceSystem()
         {
             _resourceSystemRegistry = new ResourceSystemRegistry();
-            
             _process = new Process(_resourceSystemRegistry);
+            _provider = new Provider(_resourceSystemRegistry, _process.FetchLoader);
         }
 
         #endregion
@@ -25,6 +26,7 @@ namespace ActionFit.Framework.Addressable
         {
             _resourceSystemRegistry.Dispose();
             _process.Dispose();
+            _provider.Dispose();
         }
     }
 }

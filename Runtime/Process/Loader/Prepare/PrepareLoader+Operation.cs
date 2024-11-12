@@ -73,6 +73,8 @@ namespace ActionFit.Framework.Addressable
             {
                 Addressables.Release(operationHandle);
             }
+            
+            _operationHandles.Clear();
         }
 
         #endregion

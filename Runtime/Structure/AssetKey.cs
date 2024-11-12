@@ -1,130 +1,84 @@
 
 using System;
-using System.Collections.Generic;
+using ActionFit.Framework.Addressable;
 
-namespace ActionFit.Framework.Addressable
+internal readonly struct AssetKey : IAssetKey, IEquatable<AssetKey>
 {
-    internal sealed class AssetKey : IEquatable<AssetKey>, IEquatable<AssetKeySt>
+    public string Primary { get; }
+    public string Runtime { get; }
+    public string InternalID { get; }
+    public Type Type { get; }
+
+    public bool IsValid => !string.IsNullOrEmpty(Primary) ||
+                           !string.IsNullOrEmpty(Runtime) ||
+                           !string.IsNullOrEmpty(InternalID);
+
+    internal AssetKey(string primary, string runtime, string internalId, Type type)
     {
-        #region Read-Only
+        Primary = primary;
+        Runtime = runtime;
+        InternalID = internalId;
+        Type = type;
+    }
 
-        internal string Primary { get; }
-        internal string Runtime { get; }
-        internal string InternalID { get; }
-        internal Type Type { get; }
-
-        #endregion
+    public bool Equals(IAssetKey other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
         
-        internal AssetKey() { }
-        internal AssetKey(string primary, string runtime, string internalId, Type type)
+        if (!string.IsNullOrEmpty(Primary) && !string.IsNullOrEmpty(other.Primary))
         {
-            Primary = primary;
-            Runtime = runtime;
-            InternalID = internalId;
-            Type = type;
+            return string.Equals(Primary, other.Primary);
         }
-
-        internal bool IsValid => !string.IsNullOrEmpty(Primary) && 
-                                !string.IsNullOrEmpty(Runtime) && 
-                                !string.IsNullOrEmpty(InternalID);
-
-        public bool Equals(AssetKey other)
+        
+        if (!string.IsNullOrEmpty(Runtime) && !string.IsNullOrEmpty(other.Runtime))
         {
-            if (other == null) return false;
-            return string.Equals(Primary, other.Primary) || 
-                   string.Equals(Runtime, other.Runtime) ||
-                   string.Equals(InternalID, other.InternalID);
+            return string.Equals(Runtime, other.Runtime);
         }
-
-        public bool Equals(AssetKeySt other)
-        {
-            return string.Equals(Primary, other.Primary) || 
-                   string.Equals(Runtime, other.Runtime) ||
-                   string.Equals(InternalID, other.InternalID);
-        }
-
-        public override bool Equals(object obj) => obj switch
-        {
-            AssetKey key => Equals(key),
-            AssetKeySt st => Equals(st),
-            _ => false
-        };
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = 17;
-                if (!string.IsNullOrEmpty(Primary)) return hash * 31 + Primary.GetHashCode();
-                if (!string.IsNullOrEmpty(Runtime)) return hash * 31 + Runtime.GetHashCode();
-                if (!string.IsNullOrEmpty(InternalID)) return hash * 31 + InternalID.GetHashCode();
-                return hash;
-            }
-        }
+        
+        return string.Equals(InternalID, other.InternalID);
     }
 
-    internal struct AssetKeySt : IEquatable<AssetKeySt>, IEquatable<AssetKey>
+    public bool Equals(AssetKey other)
     {
-        internal string Primary { get; set; }
-        internal string Runtime { get; set; }
-        internal string InternalID { get; set; }
-        internal Type Type { get; set; }
-
-        internal bool IsValid => !string.IsNullOrEmpty(Primary) && !string.IsNullOrEmpty(Runtime);
-
-        public bool Equals(AssetKeySt other) =>
-            string.Equals(Primary, other.Primary) || 
-            string.Equals(Runtime, other.Runtime) ||
-            string.Equals(InternalID, other.InternalID);
-
-        public bool Equals(AssetKey other)
+        if (!string.IsNullOrEmpty(Primary) && !string.IsNullOrEmpty(other.Primary))
         {
-            if (other == null) return false;
-            return string.Equals(Primary, other.Primary) || 
-                   string.Equals(Runtime, other.Runtime) ||
-                   string.Equals(InternalID, other.InternalID);
+            return string.Equals(Primary, other.Primary);
         }
 
-        public override bool Equals(object obj) => obj switch
+        if (!string.IsNullOrEmpty(Runtime) && !string.IsNullOrEmpty(other.Runtime))
         {
-            AssetKey key => Equals(key),
-            AssetKeySt st => Equals(st),
-            _ => false
-        };
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = 17;
-                if (!string.IsNullOrEmpty(Primary)) return hash * 31 + Primary.GetHashCode();
-                if (!string.IsNullOrEmpty(Runtime)) return hash * 31 + Runtime.GetHashCode();
-                if (!string.IsNullOrEmpty(InternalID)) return hash * 31 + InternalID.GetHashCode();
-                return hash;
-            }
+            return string.Equals(Runtime, other.Runtime);
         }
+        
+        return string.Equals(InternalID, other.InternalID);
     }
 
-    internal class AssetKeyComparer : IEqualityComparer<AssetKey>, IEqualityComparer<AssetKeySt>
+    public override bool Equals(object obj) => obj switch
     {
-        public bool Equals(AssetKey x, AssetKey y)
+        IAssetKey key => Equals(key),
+        _ => false
+    };
+
+    public override int GetHashCode()
+    {
+        unchecked
         {
-            if (x == null || y == null) return false;
-            return x.Equals(y);
+            var hash = 17;
+            if (!string.IsNullOrEmpty(Primary))
+            {
+                return hash * 31 + Primary.GetHashCode();
+            }
+            if (!string.IsNullOrEmpty(Runtime))
+            {
+                return hash * 31 + Runtime.GetHashCode();
+            }
+            return hash * 31 + (InternalID?.GetHashCode() ?? 0);
         }
-
-        public bool Equals(AssetKeySt x, AssetKeySt y) => x.Equals(y);
-
-        public bool Equals(AssetKey x, AssetKeySt y)
-        {
-            if (x == null) return false;
-            return x.Equals(y);
-        }
-
-        public int GetHashCode(AssetKey obj) => obj.GetHashCode();
-
-        public int GetHashCode(AssetKeySt obj) => obj.GetHashCode();
-
-        public static AssetKeyComparer Instance { get; } = new AssetKeyComparer();
     }
+
+    public static bool operator ==(AssetKey left, AssetKey right) => left.Equals(right);
+    public static bool operator !=(AssetKey left, AssetKey right) => !(left == right);
 }
