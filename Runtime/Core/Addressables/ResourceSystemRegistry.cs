@@ -10,14 +10,14 @@ namespace ActionFit.Framework.Addressable
 
         internal readonly HashSet<AssetKey> CachedAssetKeys;
         
-        internal readonly Dictionary<AssetKey, AssetReferenceSt> LoadedAssetMap;
+        internal readonly Dictionary<AssetKey, AssetCustomRef> LoadedAssetMap;
 
         #endregion
 
         internal ResourceSystemRegistry()
         {
             CachedAssetKeys = new HashSet<AssetKey>();
-            LoadedAssetMap = new Dictionary<AssetKey, AssetReferenceSt>();
+            LoadedAssetMap = new Dictionary<AssetKey, AssetCustomRef>();
         }
 
         public void Dispose()

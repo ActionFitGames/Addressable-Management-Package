@@ -4,23 +4,23 @@ using Object = UnityEngine.Object;
 
 namespace ActionFit.Framework.Addressable
 {
-    internal struct AssetReferenceSt
+    internal class AssetCustomRef
     {
         internal ushort ReferenceCount;
         internal bool IsPrepare;
         internal Object Asset;
-        internal List<AssetReferenceStDependencies> Dependencies;
+        internal List<AssetCustomRefDependencies> Dependencies;
 
-        internal static AssetReferenceSt Empty => default;
+        internal static AssetCustomRef Empty => default;
     }
 
-    internal readonly struct AssetReferenceStDependencies
+    internal class AssetCustomRefDependencies
     {
         public readonly System.Type Type;
         public readonly Object Asset;
         public readonly string SubObjectName; // 서브오브젝트 이름 (디버깅용)
 
-        public AssetReferenceStDependencies(System.Type type, Object asset)
+        public AssetCustomRefDependencies(System.Type type, Object asset)
         {
             Type = type;
             Asset = asset;

@@ -2,25 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Object = UnityEngine.Object;
+using UnityEngine;
 
 namespace ActionFit.Framework.Addressable
 {
-    public class ProvideLoadOperation<T> : IProvideLoadOperation<T> where T : Object
+    internal class ProvideInstantiateOperation : IProvideInstantiateOperation
     {
-        #region Fields
-
-        private readonly TaskCompletionSource<T> _completionSource = new();
-        private readonly List<Action<T>> _completeCallbacks = new();
+        private readonly TaskCompletionSource<GameObject> _completionSource = new();
+        private readonly List<Action<GameObject>> _completeCallbacks = new();
         private readonly List<Action<Exception>> _errorCallbacks = new();
         
         public bool IsCompleted { get; private set; }
         public bool HasError { get; private set; }
-        public Task<T> Task => _completionSource.Task;
+        public Task<GameObject> Task => _completionSource.Task;
 
-        #endregion
-        
-        public IProvideLoadOperation<T> OnComplete(Action<T> callback)
+        public IProvideInstantiateOperation OnComplete(Action<GameObject> callback)
         {
             _completeCallbacks.Add(callback);
             if (IsCompleted && Task.IsCompletedSuccessfully)
@@ -30,7 +26,7 @@ namespace ActionFit.Framework.Addressable
             return this;
         }
 
-        public IProvideLoadOperation<T> OnError(Action<Exception> callback)
+        public IProvideInstantiateOperation OnError(Action<Exception> callback)
         {
             _errorCallbacks.Add(callback);
             if (HasError && Task.IsFaulted)
@@ -40,14 +36,14 @@ namespace ActionFit.Framework.Addressable
             return this;
         }
         
-        internal void SetResult(T result)
+        internal void SetResult(GameObject instance)
         {
             IsCompleted = true;
             foreach (var callback in _completeCallbacks)
             {
-                callback(result);
+                callback(instance);
             }
-            _completionSource.SetResult(result);
+            _completionSource.SetResult(instance);
         }
 
         internal void SetError(Exception exception)

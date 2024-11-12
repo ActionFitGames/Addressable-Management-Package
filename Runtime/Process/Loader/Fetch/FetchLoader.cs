@@ -65,15 +65,15 @@ namespace ActionFit.Framework.Addressable
                 return false;
             }
 
-            existingReference.Dependencies ??= new List<AssetReferenceStDependencies>();
-            existingReference.Dependencies.Add(new AssetReferenceStDependencies(assetType, loadedAsset));
+            existingReference.Dependencies ??= new List<AssetCustomRefDependencies>();
+            existingReference.Dependencies.Add(new AssetCustomRefDependencies(assetType, loadedAsset));
             ++existingReference.ReferenceCount;
             return true;
         }
 
         private bool TryCreateNewAssetReference<T>(T loadedAsset, AssetKey assetKey) where T : Object
         {
-            var newReference = new AssetReferenceSt
+            var newReference = new AssetCustomRef
             {
                 IsPrepare = false,
                 ReferenceCount = 1,

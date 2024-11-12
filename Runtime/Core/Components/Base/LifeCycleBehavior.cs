@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace ActionFit.Framework.Addressable
@@ -8,13 +9,20 @@ namespace ActionFit.Framework.Addressable
 
         internal static ResourceSystem ResourceSystem;
 
+        internal static event Action<float> OnUpdateMainThread = delegate { };
+
         #endregion
         
         private void Awake()
         {
-            ResourceSystem = ResourceSystem.Activate();
+            ResourceSystem ??= ResourceSystem.Activate();
 
             InitializeInternal();
+        }
+
+        private void Update()
+        {
+            OnUpdateMainThread.Invoke(Time.deltaTime);
         }
 
         private void OnDestroy()
