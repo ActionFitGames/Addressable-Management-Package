@@ -95,7 +95,7 @@ namespace ActionFit.Framework.Addressable
 
         private static AssetKey CreateAccessKey(string internalId) => new(null, null, internalId, null);
 
-        private static AssetReferenceSt CreateAssetReference(Object asset) => new AssetReferenceSt
+        private static AssetCustomRef CreateAssetReference(Object asset) => new AssetCustomRef
         {
             ReferenceCount = 0,
             IsPrepare = true,
@@ -109,8 +109,8 @@ namespace ActionFit.Framework.Addressable
                 return false;
             }
 
-            assetReferenceSt.Dependencies ??= new List<AssetReferenceStDependencies>();
-            assetReferenceSt.Dependencies.Add(new AssetReferenceStDependencies(location.ResourceType, loadedObject));
+            assetReferenceSt.Dependencies ??= new List<AssetCustomRefDependencies>();
+            assetReferenceSt.Dependencies.Add(new AssetCustomRefDependencies(location.ResourceType, loadedObject));
             return true;
         }
 

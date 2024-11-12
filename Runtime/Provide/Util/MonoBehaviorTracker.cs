@@ -1,18 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
-public class MonoBehaviorTracker : MonoBehaviour
+namespace ActionFit.Framework.Addressable
 {
-    // Start is called before the first frame update
-    void Start()
+    public sealed class MonoBehaviorTracker : MonoBehaviour
     {
+        public delegate void DelegateDestroyed(MonoBehaviorTracker trackingBehavior);
+        public event DelegateDestroyed OnDestroyed;
         
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
+        internal AssetKey Key { get; set; }
         
+        private void OnDestroy()
+        {
+            OnDestroyed?.Invoke(this);
+        }
     }
 }
