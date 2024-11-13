@@ -25,14 +25,5 @@ namespace ActionFit.Framework.Addressable
             CachedAssetKeys.Clear();
             LoadedAssetMap.Clear();
         }
-        
-        #region Getter
-
-        internal bool TryGetAssetKey(AssetKey accessKey, out AssetKey resultKey)
-        {
-            return CachedAssetKeys.TryGetValue(accessKey, out resultKey);
-        }
-
-        #endregion
     }
 }

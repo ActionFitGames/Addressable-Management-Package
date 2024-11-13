@@ -39,7 +39,7 @@ namespace ActionFit.Framework.Addressable.Editor
             
             EditorGUILayout.Space(10);
 
-            // 설정 박스
+            // Settings box
             var boxStyle = new GUIStyle(EditorStyles.helpBox)
             {
                 padding = new RectOffset(10, 10, 10, 10),
@@ -62,14 +62,15 @@ namespace ActionFit.Framework.Addressable.Editor
                 GUI.changed = true;
             });
 
+            DrawSettingsSliders();
+
             EditorGUILayout.EndVertical();
             
             EditorGUILayout.Space(10);
             
-            // 설명 박스
+            // Description box
             EditorGUILayout.BeginVertical(boxStyle);
-
-            // 설명 헤더
+            
             EditorGUILayout.LabelField("[ Description ]", headerStyle);
             EditorGUILayout.Space(10);
             
@@ -89,36 +90,43 @@ namespace ActionFit.Framework.Addressable.Editor
                 padding = new RectOffset(10, 10, 0, 10)
             };
 
-            // Debug Mode 섹션
-            EditorGUILayout.LabelField("<color=#4A90E2>▪ Debug Mode</color>", titleStyle);
+            // ... (existing description sections)
+
+            EditorGUILayout.Space(8);
+            
+            // Batch Release Threshold section
+            EditorGUILayout.LabelField("<color=#4A90E2>▪ Batch Release Threshold</color>", titleStyle);
             EditorGUILayout.Space(3);
             EditorGUILayout.LabelField(
-                "Debug mode logs all operations from initialization to errors in the addressable system. " +
-                "<color=#FF6B6B>Please ensure this option is disabled in the final build.</color>", 
+                "Determines how many assets need to accumulate in the release queue before triggering " +
+                "a batch release operation. Lower values mean more frequent releases but potentially " +
+                "more overhead. Higher values batch more operations together but may temporarily hold " +
+                "more memory.", 
                 contentStyle);
             
             EditorGUILayout.Space(8);
             
-            // DontDestroyOnLoad 섹션
-            EditorGUILayout.LabelField("<color=#4A90E2>▪ DontDestroyOnLoad</color>", titleStyle);
+            // Memory Cleanup Interval section
+            EditorGUILayout.LabelField("<color=#4A90E2>▪ Memory Cleanup Interval</color>", titleStyle);
             EditorGUILayout.Space(3);
             EditorGUILayout.LabelField(
-                "If there is no permanent scene in your game, use this option to maintain " +
-                "the resource system throughout the entire game session.", 
+                "Defines the minimum time (in seconds) between automatic memory cleanup operations. " +
+                "More frequent cleanup (lower interval) keeps memory usage lower but may impact " +
+                "performance. Less frequent cleanup (higher interval) has less performance impact but " +
+                "may allow more memory accumulation.", 
                 contentStyle);
             
             EditorGUILayout.EndVertical();
             
-            // 하단 이미지 추가
+            // Bottom image with reduced size
             EditorGUILayout.Space(15);
             if (bottomImage != null)
             {
                 float aspectRatio = (float)bottomImage.width / bottomImage.height;
-                float desiredWidth = EditorGUIUtility.currentViewWidth - 30; // 여백을 위해 30픽셀 뺌
+                float desiredWidth = EditorGUIUtility.currentViewWidth - 60; // Increased margin for smaller image
                 float desiredHeight = desiredWidth / aspectRatio;
                 
                 Rect imageRect = GUILayoutUtility.GetRect(desiredWidth, desiredHeight);
-                // 이미지를 중앙 정렬하기 위한 계산
                 imageRect.x = (EditorGUIUtility.currentViewWidth - desiredWidth) * 0.5f;
                 imageRect.width = desiredWidth;
                 
@@ -175,6 +183,60 @@ namespace ActionFit.Framework.Addressable.Editor
             {
                 Resources.UnloadAsset(bottomImage);
             }
+        }
+        
+        private void DrawSettingsSliders()
+        {
+            var settings = (ResourceSystemSettingSO)target;
+            
+            EditorGUILayout.Space(10);
+            
+            EditorGUILayout.BeginHorizontal();
+            
+            // Batch Release Threshold
+            EditorGUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth / 2 - 10));
+            var thresholdLabel = new GUIContent("Batch Release Threshold", 
+                "Number of assets that trigger automatic batch release");
+            EditorGUILayout.LabelField(thresholdLabel, EditorStyles.boldLabel);
+            
+            EditorGUILayout.BeginHorizontal();
+            float sliderWidth = (EditorGUIUtility.currentViewWidth / 2) - 70; // 슬라이더 폭 조정
+            var newThreshold = settings.BatchReleaseThreshold;
+            
+            newThreshold = (int)EditorGUILayout.Slider(newThreshold, 1, 100, GUILayout.Width(sliderWidth));
+            newThreshold = Mathf.Clamp(newThreshold, 1, 100);
+            
+            if (newThreshold != settings.BatchReleaseThreshold)
+            {        
+                settings.BatchReleaseThreshold = newThreshold;
+                GUI.changed = true;
+            }
+            
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            
+            // Memory Cleanup Interval
+            EditorGUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth / 2 - 10));
+            var intervalLabel = new GUIContent("Memory Cleanup Interval", 
+                "Time interval (in seconds) between memory cleanup operations");
+            EditorGUILayout.LabelField(intervalLabel, EditorStyles.boldLabel);
+            
+            EditorGUILayout.BeginHorizontal();
+            var newInterval = settings.MemoryCleanupInterval;
+            
+            newInterval = EditorGUILayout.Slider(newInterval, 1f, 300f, GUILayout.Width(sliderWidth));                     
+            newInterval = Mathf.Clamp(newInterval, 1f, 300f);
+            
+            if (!Mathf.Approximately(newInterval, settings.MemoryCleanupInterval))
+            {     
+                settings.MemoryCleanupInterval = newInterval;
+                GUI.changed = true;
+            }
+            
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            
+            EditorGUILayout.EndHorizontal();
         }
     }
 }
