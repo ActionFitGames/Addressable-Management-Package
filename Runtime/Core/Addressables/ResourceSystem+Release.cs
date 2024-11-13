@@ -14,9 +14,6 @@ namespace ActionFit.Framework.Addressable
     {
         #region Fields
         
-        private const int BatchReleaseThreshold = 5;
-        private const float MemoryCleanupInterval = 30f;
-        
         private readonly Queue<AssetKey> _zeroRefKeys = new();
         private float _lastCleanupTime;
         private bool _isProcessingRelease;
@@ -50,7 +47,7 @@ namespace ActionFit.Framework.Addressable
                 _zeroRefKeys.Enqueue(key);
             }
             
-            if (_zeroRefKeys.Count >= BatchReleaseThreshold)
+            if (_zeroRefKeys.Count >= _setting.BatchReleaseThreshold)
             {
                 ProcessPendingReleases();
             }
@@ -145,7 +142,7 @@ namespace ActionFit.Framework.Addressable
 
         private void ProcessPendingReleases(bool force = false)
         {
-            if (!force && _zeroRefKeys.Count < BatchReleaseThreshold)
+            if (!force && _zeroRefKeys.Count < _setting.BatchReleaseThreshold)
             {
                 return;
             }
@@ -180,7 +177,7 @@ namespace ActionFit.Framework.Addressable
         private void PerformMemoryCleanup(bool force)
         {
             var currentTime = Time.realtimeSinceStartup;
-            if (!force && currentTime - _lastCleanupTime < MemoryCleanupInterval)
+            if (!force && currentTime - _lastCleanupTime < _setting.MemoryCleanupInterval)
             {
                 return;
             }
