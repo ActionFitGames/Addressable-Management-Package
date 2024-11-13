@@ -26,7 +26,7 @@ namespace ActionFit.Framework.Addressable
             Resource = ResourceSystem.GetProvider();
         }
 
-        protected void OnDisable()
+        protected virtual void OnDisable()
         {
             if (_toRelease != WhenToRelease.OnDisable)
             {
