@@ -1,6 +1,6 @@
 {
   "name": "com.actionfit.resourcesystem",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "[Framework] Resource System",
   "description": "The module in part of a standalone module related to Addressables within the game framework used by 'ActionFit Inc.'",
   "unity": "2022.3",
