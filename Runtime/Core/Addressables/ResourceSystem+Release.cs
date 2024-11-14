@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,15 +44,12 @@ namespace ActionFit.Framework.Addressable
             if (!_zeroRefKeys.Contains(key))
             {
                 _zeroRefKeys.Enqueue(key);
+                AddressableLog.Debug($"Asset '{key.Primary}' added to release queue (Reference count reached zero)");
             }
             
             if (_zeroRefKeys.Count >= _setting.BatchReleaseThreshold)
             {
                 ProcessPendingReleases();
-            }
-            else
-            {
-                ProcessSingleRelease(key);
             }
         }
 
@@ -81,7 +77,7 @@ namespace ActionFit.Framework.Addressable
                 
                 foreach (var preparedKey in labelKeys)
                 {
-                    ReleaseKey(preparedKey);
+                    ReleaseProcessInternal(preparedKey);
                 }
                 
                 _process.PrepareLoader.ReleaseLabel(labelReference);
@@ -96,7 +92,7 @@ namespace ActionFit.Framework.Addressable
             }
         }
 
-        private void ReleaseKey(AssetKey assetKey)
+        private void ReleaseProcessInternal(AssetKey assetKey)
         {
             if (!_resourceSystemRegistry.LoadedAssetMap.TryGetValue(assetKey, out var assetReferenceSt))
             {
@@ -105,6 +101,7 @@ namespace ActionFit.Framework.Addressable
 
             try
             {
+                AddressableLog.Debug($"Releasing asset '{assetKey}' from memory");
                 assetReferenceSt.Asset = null;
                 assetReferenceSt.Dependencies?.Clear();
                 assetReferenceSt.Dependencies = null;
@@ -121,25 +118,7 @@ namespace ActionFit.Framework.Addressable
         #endregion
 
         #region Process Management
-
-        private void ProcessSingleRelease(AssetKey key)
-        {
-            if (_isProcessingRelease)
-            {
-                return;
-            }
-            
-            try
-            {
-                _isProcessingRelease = true;
-                ReleaseKey(key);
-            }
-            finally
-            {
-                _isProcessingRelease = false;
-            }
-        }
-
+        
         private void ProcessPendingReleases(bool force = false)
         {
             if (!force && _zeroRefKeys.Count < _setting.BatchReleaseThreshold)
@@ -159,7 +138,7 @@ namespace ActionFit.Framework.Addressable
                 while (_zeroRefKeys.Count > 0)
                 {
                     var key = _zeroRefKeys.Dequeue();
-                    ReleaseKey(key);
+                    ReleaseProcessInternal(key);
                 }
 
                 PerformMemoryCleanup(force);

@@ -65,6 +65,7 @@ namespace ActionFit.Framework.Addressable
         {
             try
             {
+                ResourceSystem.Instance.RemoveFromZeroRefKeys(assetKey);
                 var instance = CreateInstance(prefab, parameters);
                 SetupInstanceTracker(instance, assetKey);
                 operation.SetResult(instance);
