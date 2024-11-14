@@ -45,7 +45,7 @@ namespace ActionFit.Framework.Addressable
         private async Task LoadLocationForLabel(AssetLabelReference label, 
             IDictionary<AssetLabelReference, IList<IResourceLocation>> locationLabelMap)
         {
-            var handle = Addressables.LoadResourceLocationsAsync(label);
+            var handle = Addressables.LoadResourceLocationsAsync(label, typeof(Object));
             var locations = await handle.Task;
             
             if (locations == null || locations.Count == 0)
