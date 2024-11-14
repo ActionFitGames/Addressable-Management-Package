@@ -47,7 +47,20 @@ namespace ActionFit.Framework.Addressable
         {
             var handle = Addressables.LoadResourceLocationsAsync(label);
             var locations = await handle.Task;
+            
+            if (locations == null || locations.Count == 0)
+            {
+                AddressableLog.Warning($"Can't find AssetLabelReference '{label.labelString}'");
+                return;
+            }
 
+            AddressableLog.Debug($"All Count {locations.Count} Resource Location Loaded");
+#if Addressable_Debug_Symbol
+            foreach (var location in locations)
+            {
+                AddressableLog.Debug($"Resource Location: {location.PrimaryKey}");
+            }
+#endif
             InitializeLocationTracking(label, locations, handle, locationLabelMap);
         }
 
@@ -81,7 +94,11 @@ namespace ActionFit.Framework.Addressable
             {
                 foreach (var location in locations)
                 {
-                    loadOperations.Add(CreateLoadOperation(label, location));
+                    var loadOperationInfo = CreateLoadOperation(label, location);
+                    if (!loadOperationInfo.Equals(default))
+                    {
+                        loadOperations.Add(loadOperationInfo);
+                    }
                 }
             }
 
@@ -146,6 +163,10 @@ namespace ActionFit.Framework.Addressable
 
         private LoadOperationInfo CreateLoadOperation(AssetLabelReference label, IResourceLocation location)
         {
+            if (location is null)
+            {
+                return default;
+            }
             var handle = Addressables.LoadAssetAsync<Object>(location);
             handle.Completed += op => HandleAssetLoadComplete(op, label, location);
             
