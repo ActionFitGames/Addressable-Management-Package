@@ -16,10 +16,16 @@ namespace ActionFit.Framework.Addressable
     
     public abstract class ResourceUsableBehavior : MonoBehaviour
     {
+        #region Fields
+
         private IProvider Resource { get; set; }
         private readonly List<AssetKey> _loadedAssetKeys = new();
 
-        [SerializeField] private WhenToRelease _toRelease;
+        [SerializeField] private WhenToRelease _toRelease = WhenToRelease.OnDestroy;
+
+        #endregion
+
+        #region Life Cycle
 
         protected virtual void Awake()
         {
@@ -38,6 +44,8 @@ namespace ActionFit.Framework.Addressable
 
         protected virtual void OnDestroy()
         {
+            ResourceSystemComponent.CleanupComponentQueue(this);
+
             if (_toRelease != WhenToRelease.OnDestroy)
             {
                 return;
@@ -46,17 +54,25 @@ namespace ActionFit.Framework.Addressable
             ReleaseAllLoadedAssets();
         }
 
+        #endregion
+
         #region Get Asset
 
         protected IProvideLoadOperation<T> GetAsset<T>(object assetKeyOrigin) where T : Object
         {
-            var operation = Resource.GetAsset<T>(assetKeyOrigin, out var assetKey);
-            operation.OnComplete(asset =>
+            var operation = new ProvideLoadOperation<T>();
+
+            ResourceSystemComponent.EnqueueAction(this, () =>
             {
-                if (asset != null && assetKey != default)
+                var actualOperation = Resource.GetAsset<T>(assetKeyOrigin, out var assetKey);
+                actualOperation.OnComplete(asset =>
                 {
-                    _loadedAssetKeys.Add(assetKey);
-                }
+                    if (asset != null && assetKey != default)
+                    {
+                        _loadedAssetKeys.Add(assetKey);
+                    }
+                    operation.SetResult(asset);
+                }).OnError(operation.SetError);
             });
 
             return operation;
@@ -64,6 +80,14 @@ namespace ActionFit.Framework.Addressable
 
         protected bool TryGetAsset<T>(object assetKeyOrigin, out T result) where T : Object
         {
+            result = null;
+
+            if (!ResourceSystem.IsActivateInitialize)
+            {
+                AddressableLog.Error("Resource System is not initialized. this is safety, you can use GetAsset<T>");
+                return false;
+            }
+
             if (!Resource.TryGetAssetSafety(assetKeyOrigin, out result, out var assetKey))
             {
                 return false;
@@ -79,13 +103,27 @@ namespace ActionFit.Framework.Addressable
 
         protected IProvideInstantiateOperation Instantiate(object assetKeyOrigin, Transform parent = null)
         {
-            var operation = Resource.Instantiate(assetKeyOrigin, parent);
+            var operation = new ProvideInstantiateOperation();
+
+            ResourceSystemComponent.EnqueueAction(this, () =>
+            {
+                var actualOperation = Resource.Instantiate(assetKeyOrigin, parent);
+                actualOperation.OnComplete(operation.SetResult).OnError(operation.SetError);
+            });
+
             return operation;
         }
         
         protected IProvideInstantiateOperation Instantiate(object assetKeyOrigin, Vector3 position, Quaternion rotation, Transform parent = null)
         {
-            var operation = Resource.Instantiate(assetKeyOrigin, position, rotation, parent);
+            var operation = new ProvideInstantiateOperation();
+
+            ResourceSystemComponent.EnqueueAction(this, () =>
+            {
+                var actualOperation = Resource.Instantiate(assetKeyOrigin, position, rotation, parent);
+                actualOperation.OnComplete(operation.SetResult).OnError(operation.SetError);
+            });
+
             return operation;
         }
 
@@ -105,14 +143,10 @@ namespace ActionFit.Framework.Addressable
             TryReleaseAsset(loadedKey);
         }
 
-        #endregion
-
         private void ReleaseAllLoadedAssets()
         {
             if (_loadedAssetKeys.Count == 0)
-            {
                 return;
-            }
 
             try
             {
@@ -158,5 +192,7 @@ namespace ActionFit.Framework.Addressable
                 AddressableLog.Error($"Failed to release asset {assetKey}: {exception.Message}");
             }
         }
+
+        #endregion
     }
 }

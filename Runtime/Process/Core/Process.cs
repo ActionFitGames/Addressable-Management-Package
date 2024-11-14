@@ -10,13 +10,12 @@ namespace ActionFit.Framework.Addressable
         #region Fields
 
         private readonly IInitializer _initializer;
-        private readonly IPrepareLoader _prepareLoader;
-        private readonly IFetchLoader _fetchLoader;
-        
+
         private TaskCompletionSource<bool> _initializeCompleteSource;
 
-        public IPrepareLoader PrepareLoader => _prepareLoader;
-        public IFetchLoader FetchLoader => _fetchLoader;
+        // Readonly Fields
+        public IPrepareLoader PrepareLoader { get; }
+        public IFetchLoader FetchLoader { get; }
 
         #endregion
 
@@ -25,8 +24,8 @@ namespace ActionFit.Framework.Addressable
             _initializer = new Initializer(resourceSystemRegistry);
             _initializeCompleteSource = new TaskCompletionSource<bool>();
 
-            _prepareLoader = new PrepareLoader(resourceSystemRegistry);
-            _fetchLoader = new FetchLoader(resourceSystemRegistry);
+            PrepareLoader = new PrepareLoader(resourceSystemRegistry);
+            FetchLoader = new FetchLoader(resourceSystemRegistry);
 
             InitializeSequence();
         }
